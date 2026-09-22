@@ -37,7 +37,7 @@ Two independent, application-layer protections, regardless of ESP-NOW library ve
 ## Quick Start
 
 ```bash
-git clone https://github.com/yourusername/Сansat_Сybershield.git
+git clone https://github.com/yourusername/СanSat_Сybershield.git
 cd СanSat_Сybershield
 python3 cansat_module.py
 ```
