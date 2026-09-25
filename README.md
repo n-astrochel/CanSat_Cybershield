@@ -33,7 +33,10 @@ Ground Station                                Satellite
 Two independent, application-layer protections, regardless of ESP-NOW library version:
 1. **HMAC-SHA256 authentication** — every command is cryptographically signed; tampering invalidates the signature.
 2. **Anti-replay protection** — a strictly increasing counter, persisted in non-volatile storage, rejects any previously-used packet.
-
+Also:
+3. **Protection against memory reset** — a separate flag prevents an attacker (or a random failure) from resetting the counter and “reviving” old commands.
+4. **Bonus**—**content encryption (Fernet/AES-128)** so that the command itself cannot be read if intercepted.
+   
 ## Quick Start
 
 ```bash
@@ -42,29 +45,34 @@ cd СanSat_Сybershield
 python3 cansat_module.py
 ```
 
-No dependencies beyond the Python standard library.
+NOTE: this file needs the third-party `cryptography` package.
+# Install with: pip install cryptography
+# (already preinstalled in Google Colab — no action needed there)
 
 ## Demo Output
 
 ```
 === 1. Legitimate command ===
+(on the wire, an eavesdropper only sees: gAAAAABqstUD8ICH2kd2BDLkq0DRZ2gc7nKkysTg...)
 ACCEPTED: command 'TAKE_PHOTO' executed (counter 1)
 
 === 2. Attack: packet intercepted and resent AGAIN ===
 REJECTED: replay attack — counter 1 was already used (last accepted: 1)
 
-=== 3. Attack: command tampered with, but attacker doesn't know the key ===
+=== 3. Attack: attacker swaps in a DIFFERENT captured encrypted command ===
 REJECTED: invalid signature (forgery or corrupted packet)
 
 === 4. Another legitimate command after the attacks ===
-ACCEPTED: command 'TAKE_PHOTO' executed (counter 2)
+ACCEPTED: command 'TAKE_PHOTO' executed (counter 3)
+
+=== 5. Attack: counter storage wiped, attacker replays an OLD low-numbered packet ===
+REJECTED: counter storage looks reset on an already-provisioned device (possible rollback attack or storage corruption) — manual re-pairing required, not silently trusted
+
 ```
 
 ## Honest Limitations
 
 - No key rotation — a physically extracted key is compromised permanently (inherent to any pre-shared-key design)
-- No content encryption (confidentiality) — only authenticity and freshness are protected; planned as a future addition
-- Counter storage is a single point of failure (rollback risk) — startup validation planned
 - Python prototype — porting to embedded C/C++ (ESP-IDF) is a required next step for real hardware
 - Does not stop RF jamming/DoS, and does not patch unrelated ESP-NOW library bugs (e.g. CVE-2025-52471) — those require updating ESP-IDF itself
 - Currently designed for a single sender ↔ single receiver pair
