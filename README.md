@@ -46,8 +46,8 @@ python3 cansat_module.py
 ```
 
 NOTE: this file needs the third-party `cryptography` package.
-# Install with: pip install cryptography
-# (already preinstalled in Google Colab — no action needed there)
+Install with: pip install cryptography
+(already preinstalled in Google Colab — no action needed there)
 
 ## Demo Output
 
